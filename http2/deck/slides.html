@@ -22,15 +22,18 @@ Content-Length: 243
 Content-Type: text/html
 
 ...</code></pre></div>
-<div class="listingblock"><div class="title"><code>Support HTTP/2</code></div><pre class="highlight CodeRay"><code class="no-highlight">HTTP/1.1 101 Switching Protocols
+<div class="listingblock"><div class="title"><code>Supports HTTP/2</code></div><pre class="highlight CodeRay"><code class="no-highlight">HTTP/1.1 101 Switching Protocols
 Connection: Upgrade
 Upgrade: h2
 
 [ HTTP/2 connection ...</code></pre></div>
 <details><details open=""><summary>Notes</summary><ul><li>A server that does not support HTTP/2 can respond to the request as though the Upgrade header field were absent.</li><li>A server that supports HTTP/2 can accept the upgrade with a 101 (Switching Protocols) response. After the empty line that terminates the 101 response, the server can begin sending HTTP/2 frames. These frames MUST include a response to the request that initiated the Upgrade.</li><li>The first HTTP/2 frame sent by the server is a SETTINGS frame (Section 6.5). Upon receiving the 101 response, the client sends a connection preface (Section 3.5), which includes a SETTINGS frame.</li><li>The HTTP/1.1 request that is sent prior to upgrade is assigned stream identifier 1 and is assigned the highest possible priority. Stream 1 is implicitly half closed from the client toward the server, since the request is completed as an HTTP/1.1 request. After commencing the HTTP/2 connection, stream 1 is used for the response.</li></ul></details></details></section>
+<section class="topic source"><h2>Handshake request/response dump</h2><div class="listingblock"><pre class="highlight CodeRay"><code class="no-highlight">some thing here</code></pre></div>
+<div class="listingblock"><pre class="highlight CodeRay"><code class="no-highlight">some thing here</code></pre></div></section>
 <section class="topic source"><h2>Timelines</h2><ul><li>When ?</li></ul></section>
 <section class="topic source"><h2>References</h2><div class="admonitionblock note"><table><tr><td class="icon"><i class="icon-note" title="Note"></i></td><td class="content">Source: <a href="https://github.com/arun-gupta/decks/http2">https://github.com/arun-gupta/decks/http2</a></td></tr></table></div>
 <div class="admonitionblock note"><table><tr><td class="icon"><i class="icon-note" title="Note"></i></td><td class="content">HTTPBIS WG list: <a href="http://lists.w3.org/Archives/Public/ietf-http-wg/">http://lists.w3.org/Archives/Public/ietf-http-wg/</a></td></tr></table></div>
+<div class="admonitionblock note"><table><tr><td class="icon"><i class="icon-note" title="Note"></i></td><td class="content">Implementations: <a href="https://github.com/http2/http2-spec/wiki/Implementations">https://github.com/http2/http2-spec/wiki/Implementations</a></td></tr></table></div>
 <div class="admonitionblock note"><table><tr><td class="icon"><i class="icon-note" title="Note"></i></td><td class="content">Spec: <a href="http://http2.github.io/">http://http2.github.io/</a></td></tr></table></div>
 <div class="admonitionblock note"><table><tr><td class="icon"><i class="icon-note" title="Note"></i></td><td class="content">Slides generated with Asciidoctor and DZSlides backend</td></tr></table></div>
 <div class="admonitionblock note"><table><tr><td class="icon"><i class="icon-note" title="Note"></i></td><td class="content">Original slide template - Dan Allen &amp; Sarah White</td></tr></table></div></section>

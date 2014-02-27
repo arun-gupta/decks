@@ -150,6 +150,19 @@ Upgrade: h2
 ====
 
 [.topic.source]
+== Handshake request/response dump
+
+[source]
+--
+some thing here
+--
+
+[source]
+--
+some thing here
+--
+
+[.topic.source]
 == Timelines
 
 * When ?
@@ -160,6 +173,8 @@ Upgrade: h2
 NOTE: Source: https://github.com/arun-gupta/decks/http2
 
 NOTE: HTTPBIS WG list: http://lists.w3.org/Archives/Public/ietf-http-wg/
+
+NOTE: Implementations: https://github.com/http2/http2-spec/wiki/Implementations
 
 NOTE: Spec: http://http2.github.io/
 

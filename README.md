@@ -1,4 +1,2 @@
-decks
-=====
-
-Decks
+Slide Decks
+===========

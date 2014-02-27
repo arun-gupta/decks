@@ -1,0 +1,175 @@
+= HTTP/2
+Arun Gupta ; Red Hat; @arungupta
+include::attributes.adoc[]
+
+:experimental:
+:toc2:
+:sectanchors:
+:idprefix:
+:idseparator: -
+:icons: font
+:dzslides-transition: fade
+:source-highlighter: coderay
+
+[.topic.source]
+== Arun Gupta
+
+====
+* Director, Developer Advocacy, Red Hat Inc.
+* O'Reilly and McGraw Hill author
+* Fitness freak
+====
+
+[NOTE ]
+[role="speaker"]
+====
+* My name is Arun Gupta, and I drive community engagement efforts for JBoss at Red Hat
+* I've authored couple of O'Reilly best selling books and another one by McGraw Hill
+* I'm a workout nut as my kids call me and a runner
+====
+
+== !
+"HTTP/2 enables a more _efficient_ use of network resources and a reduced perception of latency by introducing _header field compression_ and allowing _multiple concurrent messages_ on the same connection. It also introduces _unsolicited push_ of representations from _servers to clients_."
+
+-- http://http2.github.io/http2-spec/
+
+[.topic.source]
+== Background
+
+* Wildfly successful ... but ...
+** Allows _only one request_ to be outstanding at a time on a given connection
+** HTTP/1.1 pipelining only _partially addressed request concurrency_
+** Header fields are often _repetitive and verbose_
+
+[NOTE]
+[role="speaker"]
+====
+* HTTP/1.1 pipelining only partially addressed request concurrency and suffers from head-of-line blocking. Therefore, clients that need to make many requests typically use multiple connections to a server in order to reduce latency.
+* HTTP/1.1 header fields are often repetitive and verbose, which, in addition to generating more or larger network packets, can cause the small initial TCP congestion window to quickly fill. This can result in excessive latency when multiple requests are made on a single new TCP connection.
+====
+
+[.topic.source]
+== HTTP/2 to rescue
+
+[.incremental]
+* Optimized mapping of HTTP's semantics to an underlying connection
+* Allows prioritization of requests
+* Fewer TCP connections
+* Binary message framing
+
+[NOTE]
+[role="speaker"]
+====
+* Defines an optimized mapping of HTTP's semantics to an underlying connection. Specifically, it allows interleaving of request and response messages on the same connection and uses an efficient coding for HTTP header fields.
+* Allows prioritization of requests, letting more important requests complete more quickly, further improving performance
+* The resulting protocol is designed to be more friendly to the network, because fewer TCP connections can be used in comparison to HTTP/1.x. This means less competition with other flows, and longer-lived connections, which in turn leads to better utilization of available network capacity.
+* Finally, this encapsulation also enables more scalable processing of messages through use of binary message framing.
+====
+
+[.topic.source]
+== !
+
+[.statement]
+`Essence of HTTP/2:` +
+HTTP/2 supports all of the core features of HTTP/1.1, but aims to be more _efficient_ in several ways.
+
+[.topic.source]
+== Overview
+
+[.incremental]
+* Frame
+* Streams
+* Flow control and prioritization
+* Server push
+* Compressed HTTP header fields
+
+[NOTE]
+[role="speaker"]
+====
+* The basic protocol unit in HTTP/2 is a frame (Section 4.1). Each frame has a different type and purpose. For example, HEADERS and DATA frames form the basis of HTTP requests and responses (Section 8.1); other frame types like SETTINGS, WINDOW_UPDATE, and PUSH_PROMISE are used in support of other HTTP/2 features.
+* Multiplexing of requests is achieved by having each HTTP request-response exchanged assigned to a single stream (Section 5). Streams are largely independent of each other, so a blocked or stalled request does not prevent progress on other requests.
+* While some of the frame and stream layer concepts are isolated from HTTP, the intent is not to define a completely generic framing layer. The framing and streams layers are tailored to the needs of the HTTP protocol and server push.
+* Flow control and prioritization ensure that it is possible to properly use multiplexed streams. Flow control (Section 5.2) helps to ensure that only data that can be used by a receiver is transmitted. Prioritization (Section 5.3) ensures that limited resources can be directed to the most important requests first.
+* HTTP/2 adds a new interaction mode, whereby a server can push responses to a client (Section 8.2). Server push allows a server to speculatively send a client data that the server anticipates the client will need, trading off some network usage against a potential latency gain. The server does this by synthesizing a request, which it sends as a PUSH_PROMISE frame. The server is then able to send a response to the synthetic request on an separate stream.
+* Frames that contain HTTP header fields are compressed (Section 4.3). HTTP requests can be highly redundant, so compression can reduce the size of requests and responses significantly.
+====
+
+[.topic.source]
+== Starting HTTP/2
+
+* "http" and "https" URI schemes from HTTP/1.1
+* Uses standard HTTP Upgrade
+
+[source]
+--
+GET /default.htm HTTP/1.1
+Host: server.example.com
+Connection: Upgrade, HTTP2-Settings
+Upgrade: h2
+HTTP2-Settings: <base64url encoding of HTTP/2 SETTINGS payload>
+--
+
+[NOTE]
+[role="speaker"]
+====
+* A client that makes a request to an "http" URI without prior knowledge about support for HTTP/2 uses the HTTP Upgrade mechanism (Section 6.7 of). The client makes an HTTP/1.1 request that includes an Upgrade header field identifying HTTP/2 with the h2 token. The HTTP/1.1 request MUST include exactly one HTTP2-Settings (Section 3.2.1) header field.
+* Requests that contain an entity body MUST be sent in their entirety before the client can send HTTP/2 frames. This means that a large request entity can block the use of the connection until it is completely sent.
+* If concurrency of an initial request with subsequent requests is important, a small request can be used to perform the upgrade to HTTP/2, at the cost of an additional round-trip.
+====
+
+[.topic.source]
+== HTTP/2 Handshake Response
+
+[source]
+.+Does not support HTTP/2+
+--
+HTTP/1.1 200 OK
+Content-Length: 243
+Content-Type: text/html
+
+...
+--
+
+[source]
+.+Supports HTTP/2+
+--
+HTTP/1.1 101 Switching Protocols
+Connection: Upgrade
+Upgrade: h2
+
+[ HTTP/2 connection ...
+--
+
+[NOTE]
+[role="speaker"]
+====
+* A server that does not support HTTP/2 can respond to the request as though the Upgrade header field were absent.
+* A server that supports HTTP/2 can accept the upgrade with a 101 (Switching Protocols) response. After the empty line that terminates the 101 response, the server can begin sending HTTP/2 frames. These frames MUST include a response to the request that initiated the Upgrade.
+* The first HTTP/2 frame sent by the server is a SETTINGS frame (Section 6.5). Upon receiving the 101 response, the client sends a connection preface (Section 3.5), which includes a SETTINGS frame.
+* The HTTP/1.1 request that is sent prior to upgrade is assigned stream identifier 1 and is assigned the highest possible priority. Stream 1 is implicitly half closed from the client toward the server, since the request is completed as an HTTP/1.1 request. After commencing the HTTP/2 connection, stream 1 is used for the response.
+====
+
+[.topic.source]
+== Timelines
+
+* When ?
+
+[.topic.source]
+== References
+
+NOTE: Source: https://github.com/arun-gupta/decks/http2
+
+NOTE: HTTPBIS WG list: http://lists.w3.org/Archives/Public/ietf-http-wg/
+
+NOTE: Spec: http://http2.github.io/
+
+NOTE: Slides generated with Asciidoctor and DZSlides backend
+
+NOTE: Original slide template - Dan Allen & Sarah White
+
+[.topic.ending, hrole="name"]
+== Arun Gupta
+
+[.footer]
+[icon-twitter]'{zwsp}' @arungupta
+
